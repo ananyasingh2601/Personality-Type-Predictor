@@ -15,32 +15,38 @@ DATASET_CANDIDATES = [
 
 APP_TITLE = "Prism Persona"
 APP_SUBTITLE = "A colorful MBTI-style personality predictor powered by Decision Tree and KNN models."
+APP_TAGLINE = "Answer 10 quick questions, compare two classic ML models, and explore your MBTI-style profile through a vivid visual dashboard."
 
 MODEL_CONFIGS = {
     "Decision Tree": {
         "filename": "decision_tree_pipeline.joblib",
         "classifier": "decision_tree",
         "label": "Decision Tree",
-        "sample_size": 25000,
-        "max_features": 4000,
+        "sample_size": 42000,
+        "max_features": 6500,
         "ngram_range": (1, 2),
-        "min_df": 3,
-        "max_depth": 30,
-        "min_samples_split": 8,
-        "min_samples_leaf": 3,
+        "min_df": 2,
+        "max_df": 0.92,
+        "criterion": "entropy",
+        "max_depth": 42,
+        "min_samples_split": 10,
+        "min_samples_leaf": 2,
         "class_weight": "balanced",
     },
     "KNN": {
         "filename": "knn_pipeline.joblib",
         "classifier": "knn",
         "label": "KNN",
-        "sample_size": 12000,
-        "max_features": 3000,
+        "sample_size": 18000,
+        "max_features": 7000,
         "ngram_range": (1, 2),
-        "min_df": 4,
-        "n_neighbors": 11,
+        "min_df": 2,
+        "max_df": 0.95,
+        "svd_components": 220,
+        "n_neighbors": 17,
         "weights": "distance",
-        "metric": "cosine",
+        "metric": "minkowski",
+        "p": 2,
         "algorithm": "brute",
     },
 }
@@ -71,6 +77,14 @@ GROUP_ACCENTS = {
     "Explorers": "#FF9F1C",
 }
 
+GROUP_ORDER = ["Analysts", "Diplomats", "Sentinels", "Explorers"]
+TYPE_ORDER = [
+    "INTJ", "INTP", "ENTJ", "ENTP",
+    "INFJ", "INFP", "ENFJ", "ENFP",
+    "ISTJ", "ISFJ", "ESTJ", "ESFJ",
+    "ISTP", "ISFP", "ESTP", "ESFP",
+]
+
 COLOR_SYSTEM = {
     "paper": "#F7F1E8",
     "paper_alt": "#FFF9F1",
@@ -95,22 +109,22 @@ TYPOGRAPHY_SCALE = {
 }
 
 TYPE_PROFILES = {
-    "INTJ": {"title": "Strategic Architect", "summary": "Independent, future-focused, and energized by building systems that work."},
-    "INTP": {"title": "Curious Analyst", "summary": "Concept-driven thinker who likes exploring how ideas fit together."},
-    "ENTJ": {"title": "Bold Commander", "summary": "Decisive organizer who naturally steers teams toward ambitious goals."},
-    "ENTP": {"title": "Inventive Debater", "summary": "Playful strategist who enjoys patterns, possibility, and challenge."},
-    "INFJ": {"title": "Insightful Guide", "summary": "Meaning-oriented planner who blends empathy with long-range vision."},
-    "INFP": {"title": "Idealistic Mediator", "summary": "Values-led creative who seeks authenticity, purpose, and growth."},
-    "ENFJ": {"title": "Inspiring Mentor", "summary": "People-centered organizer who motivates others with warmth and clarity."},
-    "ENFP": {"title": "Imaginative Campaigner", "summary": "Energetic explorer who follows curiosity, connection, and fresh ideas."},
-    "ISTJ": {"title": "Reliable Inspector", "summary": "Practical, steady, and committed to doing things carefully and well."},
-    "ISFJ": {"title": "Supportive Defender", "summary": "Quietly dependable helper who notices needs and follows through."},
-    "ESTJ": {"title": "Organized Executive", "summary": "Structured leader who values efficiency, clarity, and accountability."},
-    "ESFJ": {"title": "Community Host", "summary": "Warm coordinator who keeps groups connected, supported, and on track."},
-    "ISTP": {"title": "Hands-on Explorer", "summary": "Action-oriented problem solver who likes practical freedom and craft."},
-    "ISFP": {"title": "Creative Adventurer", "summary": "Flexible, aesthetic, and grounded in personal values and experience."},
-    "ESTP": {"title": "Energetic Dynamo", "summary": "Fast-moving realist who learns by doing and adapts in the moment."},
-    "ESFP": {"title": "Vibrant Performer", "summary": "Expressive connector who brings momentum, warmth, and spontaneity."},
+    "INTJ": {"title": "Strategic Architect", "summary": "Independent, future-focused, and energized by building systems that work.", "strengths": "strategy, structure, independent thinking", "collab": "Give them room to think, then invite them to shape the plan."},
+    "INTP": {"title": "Curious Analyst", "summary": "Concept-driven thinker who likes exploring how ideas fit together.", "strengths": "logic, curiosity, model-building", "collab": "They thrive when discussion is open, exploratory, and idea-rich."},
+    "ENTJ": {"title": "Bold Commander", "summary": "Decisive organizer who naturally steers teams toward ambitious goals.", "strengths": "leadership, execution, momentum", "collab": "Keep goals explicit and they will push the work forward fast."},
+    "ENTP": {"title": "Inventive Debater", "summary": "Playful strategist who enjoys patterns, possibility, and challenge.", "strengths": "innovation, reframing, energetic ideation", "collab": "Use them early when a problem needs unconventional angles."},
+    "INFJ": {"title": "Insightful Guide", "summary": "Meaning-oriented planner who blends empathy with long-range vision.", "strengths": "insight, empathy, long-range thinking", "collab": "They do their best work when purpose is clear and human impact matters."},
+    "INFP": {"title": "Idealistic Mediator", "summary": "Values-led creative who seeks authenticity, purpose, and growth.", "strengths": "creativity, sincerity, reflective depth", "collab": "Connect the work to values and they will bring originality."},
+    "ENFJ": {"title": "Inspiring Mentor", "summary": "People-centered organizer who motivates others with warmth and clarity.", "strengths": "encouragement, orchestration, communication", "collab": "They shine when helping people move together around a shared goal."},
+    "ENFP": {"title": "Imaginative Campaigner", "summary": "Energetic explorer who follows curiosity, connection, and fresh ideas.", "strengths": "enthusiasm, possibility thinking, spontaneity", "collab": "Give them freedom to explore and they will generate momentum."},
+    "ISTJ": {"title": "Reliable Inspector", "summary": "Practical, steady, and committed to doing things carefully and well.", "strengths": "reliability, precision, accountability", "collab": "They appreciate clear expectations and dependable systems."},
+    "ISFJ": {"title": "Supportive Defender", "summary": "Quietly dependable helper who notices needs and follows through.", "strengths": "care, consistency, detail sensitivity", "collab": "They tend to anchor a team by protecting quality and people."},
+    "ESTJ": {"title": "Organized Executive", "summary": "Structured leader who values efficiency, clarity, and accountability.", "strengths": "coordination, decisiveness, structure", "collab": "They work best when plans, roles, and deadlines are visible."},
+    "ESFJ": {"title": "Community Host", "summary": "Warm coordinator who keeps groups connected, supported, and on track.", "strengths": "support, responsiveness, group awareness", "collab": "They often become the glue that keeps collaboration healthy."},
+    "ISTP": {"title": "Hands-on Explorer", "summary": "Action-oriented problem solver who likes practical freedom and craft.", "strengths": "adaptability, troubleshooting, calm under pressure", "collab": "Let them test things directly and they will find what works."},
+    "ISFP": {"title": "Creative Adventurer", "summary": "Flexible, aesthetic, and grounded in personal values and experience.", "strengths": "taste, adaptability, authenticity", "collab": "They respond well to autonomy, trust, and meaningful work."},
+    "ESTP": {"title": "Energetic Dynamo", "summary": "Fast-moving realist who learns by doing and adapts in the moment.", "strengths": "action, improvisation, risk sense", "collab": "They bring momentum when a team needs rapid practical decisions."},
+    "ESFP": {"title": "Vibrant Performer", "summary": "Expressive connector who brings momentum, warmth, and spontaneity.", "strengths": "presence, warmth, quick engagement", "collab": "They tend to lift energy and make experiences feel vivid and human."},
 }
 
 DIMENSION_META = {
@@ -123,4 +137,3 @@ DIMENSION_META = {
 QUIZ_DISCLAIMER = (
     "This project is for educational use. MBTI-style outputs are descriptive, not clinical or diagnostic."
 )
-

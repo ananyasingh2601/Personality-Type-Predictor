@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 from docx import Document
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.shared import Inches, Pt
 
+BASE_DIR = Path(__file__).resolve().parents[1]
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
 from src.personality_predictor.config import GROUP_ACCENTS, MODEL_CONFIGS, OUTPUT_DOC_DIR
 
-
-BASE_DIR = Path(__file__).resolve().parents[1]
 METRICS_PATH = BASE_DIR / "models" / "metrics.json"
 
 
