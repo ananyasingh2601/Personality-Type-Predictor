@@ -236,11 +236,26 @@ def render_landing() -> None:
     
     metric_models = metrics.get("models", {})
     if metric_models and valid_benchmarks:
-        st.markdown("<h3 class='section-title'>📊 Model Performance</h3>", unsafe_allow_html=True)
-        left, right = st.columns([1.0, 1.0], gap="large")
-        with left:
+        st.markdown("<h3 class='section-title'>📊 Dataset Overview</h3>", unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div class='info-strip'>
+                <div><span>Total Records</span><strong>{dataset_summary.get('rows', 0):,}</strong></div>
+                <div><span>Types Represented</span><strong>{dataset_summary.get('type_count', 16)}</strong></div>
+                <div><span>Most Common</span><strong>{dataset_summary.get('dominant_type', 'N/A')}</strong></div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        
+        st.markdown("<div style='height: 1.5rem;'></div>", unsafe_allow_html=True)
+        
+        chart_col1, chart_col2 = st.columns([1.0, 1.0], gap="large")
+        with chart_col1:
+            st.markdown("<div class='chart-label'>Model Accuracy Comparison</div>", unsafe_allow_html=True)
             st.pyplot(build_model_comparison_chart(metric_models), clear_figure=True)
-        with right:
+        with chart_col2:
+            st.markdown("<div class='chart-label'>Response Distribution by Group</div>", unsafe_allow_html=True)
             if dataset_summary.get("group_counts"):
                 st.pyplot(build_group_donut_chart(dataset_summary["group_counts"]), clear_figure=True)
     elif metric_models:
@@ -449,8 +464,13 @@ def render_results() -> None:
         if not model_metrics or not has_valid_benchmarks(metrics):
             st.info("No full training metrics found yet. Run python train_model.py to generate evaluation charts.")
         else:
-            left, right = st.columns([1.15, 0.85], gap="large")
-            with left:
+            st.markdown("<h3 class='section-title'>🔍 Model Evaluation Metrics</h3>", unsafe_allow_html=True)
+            
+            st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+            
+            chart_left, chart_right = st.columns([1.0, 1.0], gap="large")
+            with chart_left:
+                st.markdown("<div class='chart-label'>Confusion Matrix</div>", unsafe_allow_html=True)
                 st.pyplot(
                     build_confusion_heatmap(
                         model_metrics["confusion_matrix"],
@@ -459,31 +479,35 @@ def render_results() -> None:
                     ),
                     clear_figure=True,
                 )
-            with right:
-                st.markdown("<div class='glass-panel compact'>", unsafe_allow_html=True)
-                st.markdown("**Most confused type pairs**")
+            with chart_right:
+                st.markdown("<div class='chart-label'>Performance Analysis</div>", unsafe_allow_html=True)
+                
+                st.markdown("<div class='analysis-panel'>", unsafe_allow_html=True)
+                st.markdown("<strong style='font-size: 1.1rem; display: block; margin-bottom: 1rem;'>Most confused type pairs</strong>")
                 for row in model_metrics.get("top_confusions", [])[:6]:
                     st.markdown(
                         f"""
                         <div class="confusion-row">
-                            <span>{row['actual']} -> {row['predicted']}</span>
+                            <span>{row['actual']} → {row['predicted']}</span>
                             <strong>{row['count']}</strong>
                         </div>
                         """,
                         unsafe_allow_html=True,
                     )
                 st.markdown("</div>", unsafe_allow_html=True)
-
+                
+                st.markdown("<div style='height: 1.5rem;'></div>", unsafe_allow_html=True)
+                
                 weakest = model_metrics.get("class_scores", {}).get("weakest_f1", [])[:4]
                 if weakest:
-                    st.markdown("<div class='glass-panel compact'>", unsafe_allow_html=True)
-                    st.markdown("**Lowest F1 classes**")
+                    st.markdown("<div class='analysis-panel'>", unsafe_allow_html=True)
+                    st.markdown("<strong style='font-size: 1.1rem; display: block; margin-bottom: 1rem;'>Lowest F1 score classes</strong>")
                     for row in weakest:
                         st.markdown(
                             f"""
                             <div class="confusion-row">
                                 <span>{row['type']}</span>
-                                <strong>{row['f1'] * 100:.1f}%</strong>
+                                <strong>{row['f1']:.1%}</strong>
                             </div>
                             """,
                             unsafe_allow_html=True,
