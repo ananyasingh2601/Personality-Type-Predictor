@@ -30,16 +30,27 @@ def build_radar_chart(rows: list[dict[str, object]], accent_color: str):
     angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
     angles += angles[:1]
 
-    fig, ax = plt.subplots(figsize=(5.6, 5.6), subplot_kw={"polar": True})
-    fig.patch.set_facecolor("#FFF9F1")
-    ax.set_facecolor("#FFF9F1")
-    ax.plot(angles, values, color=accent_color, linewidth=2.7)
-    ax.fill(angles, values, color=accent_color, alpha=0.20)
-    ax.set_thetagrids(np.degrees(angles[:-1]), labels, fontsize=10, color="#152238")
+    fig, ax = plt.subplots(figsize=(4.8, 4.8), subplot_kw={"polar": True})
+    fig.patch.set_facecolor("#141B28")
+    ax.set_facecolor("#1A2233")
+    ax.plot(angles, values, color=accent_color, linewidth=2.05, solid_capstyle="round")
+    ax.fill(angles, values, color=accent_color, alpha=0.14)
+    ax.set_thetagrids(
+        np.degrees(angles[:-1]),
+        labels,
+        fontsize=9,
+        color="#CBD5E1",
+        fontweight="normal",
+        fontfamily="DejaVu Sans",
+    )
     ax.set_ylim(0, 100)
     ax.set_yticks([20, 40, 60, 80, 100])
-    ax.set_yticklabels(["20", "40", "60", "80", "100"], color="#6B7785", fontsize=8)
-    ax.grid(color="#D8CFBE", alpha=0.7)
+    ax.set_yticklabels(["20", "40", "60", "80", "100"], color="#8FA2BA", fontsize=7)
+    ax.tick_params(axis="x", pad=8)
+    ax.grid(color="#445168", alpha=0.48, linewidth=0.8)
+    ax.spines["polar"].set_color("#5D6B82")
+    ax.spines["polar"].set_linewidth(0.9)
+    fig.subplots_adjust(top=0.90, bottom=0.16, left=0.12, right=0.88)
     return fig
 
 

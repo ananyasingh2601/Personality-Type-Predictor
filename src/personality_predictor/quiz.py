@@ -132,8 +132,11 @@ def get_question(question_key: str) -> Question:
     return next(question for question in QUESTION_BANK if question.key == question_key)
 
 
-def get_choice(question: Question, letter: str) -> Choice:
-    return next(choice for choice in question.choices if choice.letter == letter)
+def get_choice(question: Question, letter: str) -> Choice | None:
+    for choice in question.choices:
+        if choice.letter == letter:
+            return choice
+    return None
 
 
 def score_answers(answers: dict[str, str]) -> dict[str, object]:
@@ -145,9 +148,13 @@ def score_answers(answers: dict[str, str]) -> dict[str, object]:
         selected_letter = answers.get(question.key)
         if not selected_letter:
             continue
+        selected_choice = get_choice(question, selected_letter)
+        if selected_choice is None:
+            # Ignore stale or invalid letters from session state.
+            continue
         dimension_totals[question.dimension] += question.weight
         letter_scores[selected_letter] += question.weight
-        profile_fragments.append(get_choice(question, selected_letter).profile_fragment)
+        profile_fragments.append(selected_choice.profile_fragment)
 
     dimension_scores: dict[str, dict[str, object]] = {}
     letters: list[str] = []
@@ -202,7 +209,10 @@ def compose_persona_text(answers: dict[str, str], scored: dict[str, object]) -> 
         chosen = answers.get(question.key)
         if not chosen:
             continue
-        selected_details.append(get_choice(question, chosen).detail)
+        selected_choice = get_choice(question, chosen)
+        if selected_choice is None:
+            continue
+        selected_details.append(selected_choice.detail)
 
     sentences = [
         " ".join(fragments[:4]),

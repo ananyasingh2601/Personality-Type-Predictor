@@ -376,19 +376,51 @@ h1, h2, h3 {
 
 .radar-card {
   height: 100%;
-  padding: 1.3rem 1.35rem;
+  padding: 0.85rem 1rem 0.8rem;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  align-items: center;
+  border-radius: 24px;
+  background: rgba(23, 31, 47, 0.88);
+  box-shadow: 0 12px 24px rgba(7, 10, 16, 0.35);
 }
 
 .radar-heading {
-  margin-top: -0.2rem;
-  margin-bottom: 1.25rem;
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Radar chart block inside the right column of persona section */
+.radar-heading + div[data-testid="stPyplotChart"] {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  border-radius: 24px;
+  background: rgba(23, 31, 47, 0.88);
+  box-shadow: 0 12px 24px rgba(7, 10, 16, 0.35);
+  padding: 0.65rem 0.85rem 0.5rem;
 }
 
 .radar-card [data-testid="stPyplotChart"] {
+  width: 100%;
+  max-width: 430px;
   min-height: auto !important;
+  margin: 0 auto !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.radar-card [data-testid="stPyplotChart"] > div {
+  width: 100%;
 }
 
 .dimension-row {
@@ -646,5 +678,21 @@ hr {
 
   .radar-heading {
     margin-top: 0;
+    margin-bottom: 8px;
+    padding-bottom: 7px;
+    font-size: 1.35rem;
+  }
+
+  .radar-heading + div[data-testid="stPyplotChart"] {
+    max-width: 360px;
+    padding: 0.5rem 0.65rem 0.45rem;
+  }
+
+  .radar-card {
+    padding: 0.9rem 0.85rem 0.75rem;
+  }
+
+  .radar-card [data-testid="stPyplotChart"] {
+    max-width: 360px;
   }
 }

@@ -92,7 +92,16 @@ def restart_quiz() -> None:
 
 
 def choose_answer(letter: str) -> None:
-    question = QUESTION_BANK[st.session_state.question_index]
+    if not QUESTION_BANK:
+        return
+
+    index = int(st.session_state.get("question_index", 0) or 0)
+    if index >= len(QUESTION_BANK):
+        if st.session_state.get("stage") == "quiz" and st.session_state.get("result") is None:
+            finalize_results()
+        return
+
+    question = QUESTION_BANK[index]
     st.session_state.answers[question.key] = letter
     st.session_state.question_index += 1
     if st.session_state.question_index >= len(QUESTION_BANK):
@@ -293,6 +302,15 @@ def render_landing() -> None:
 
 
 def render_quiz() -> None:
+    if not QUESTION_BANK:
+        st.warning("Question bank is empty. Add quiz questions to continue.")
+        return
+
+    if st.session_state.question_index >= len(QUESTION_BANK):
+        if st.session_state.result is None:
+            finalize_results()
+        return
+
     question = QUESTION_BANK[st.session_state.question_index]
     progress = (st.session_state.question_index + 1) / len(QUESTION_BANK)
     answered = st.session_state.question_index
@@ -426,7 +444,6 @@ def render_results() -> None:
         
         st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
 
-        st.markdown("<div class='persona-grid'>", unsafe_allow_html=True)
         left, right = st.columns([1.0, 1.0], gap="large")
         with left:
             st.markdown(
@@ -445,11 +462,8 @@ def render_results() -> None:
             if "warning" in prediction:
                 st.warning(prediction["warning"])
         with right:
-            st.markdown("<div class='result-card rich radar-card'>", unsafe_allow_html=True)
-            st.markdown("<div class='chart-label radar-heading'>Dimension Radar</div>", unsafe_allow_html=True)
+            st.markdown("<div class='radar-heading'>Dimension Radar</div>", unsafe_allow_html=True)
             st.pyplot(build_radar_chart(rows, accent), clear_figure=True)
-            st.markdown("</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
         st.markdown("<h3 class='section-title'>Dimension Breakdown</h3>", unsafe_allow_html=True)
