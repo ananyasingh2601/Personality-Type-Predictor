@@ -6,8 +6,10 @@
   --muted: #b0b9c6;
   --soft: #7a8594;
   --border: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(255, 255, 255, 0.14);
   --shadow: rgba(0, 0, 0, 0.3);
   --shadow-strong: rgba(0, 0, 0, 0.5);
+  --font-sans: "Inter", "Poppins", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --analysts: #4f46e5;
   --diplomats: #ec4899;
   --sentinels: #14b8a6;
@@ -31,13 +33,16 @@
 }
 
 html, body, [class*="css"] {
-  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
+  line-height: 1.6;
 }
 
 h1, h2, h3 {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-sans);
   color: var(--ink);
   letter-spacing: -0.03em;
+  line-height: 1.2;
+  font-weight: 700;
 }
 
 .block-container {
@@ -83,6 +88,7 @@ h1, h2, h3 {
 .candidate-card p {
   color: var(--muted);
   line-height: 1.6;
+  font-size: 0.98rem;
 }
 
 .eyebrow,
@@ -116,9 +122,9 @@ h1, h2, h3 {
 .candidate-card,
 .stat-pill {
   border-radius: 26px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   background: var(--paper-deep);
-  box-shadow: 0 18px 40px rgba(20, 34, 58, 0.08);
+  box-shadow: 0 14px 28px rgba(9, 12, 18, 0.28);
 }
 
 .board-card {
@@ -200,6 +206,15 @@ h1, h2, h3 {
 .metric-card strong {
   font-size: 1.3rem;
   margin-bottom: 0.5rem;
+}
+
+.card-title {
+  margin: 0 0 0.9rem;
+  color: var(--ink);
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-family: var(--font-sans);
 }
 
 .progress-shell {
@@ -345,10 +360,35 @@ h1, h2, h3 {
 .section-title {
   margin-top: 4rem;
   margin-bottom: 2rem;
-  font-size: 1.8rem;
+  font-size: 2rem;
   color: var(--ink);
   padding-bottom: 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.persona-grid {
+  width: 100%;
+}
+
+.persona-grid [data-testid="column"] > div {
+  height: 100%;
+}
+
+.radar-card {
+  height: 100%;
+  padding: 1.3rem 1.35rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.radar-heading {
+  margin-top: -0.2rem;
+  margin-bottom: 1.25rem;
+}
+
+.radar-card [data-testid="stPyplotChart"] {
+  min-height: auto !important;
 }
 
 .dimension-row {
@@ -421,7 +461,9 @@ div.stButton > button:focus {
 }
 
 div[data-baseweb="tab-list"] {
-  gap: 0.45rem;
+  gap: 1.2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 0.25rem;
 }
 
 div[role="radiogroup"] {
@@ -443,9 +485,39 @@ div[role="radiogroup"] > label p {
 }
 
 button[data-baseweb="tab"] {
-  border-radius: 999px !important;
-  background: rgba(255, 250, 243, 0.66) !important;
-  border: 1px solid rgba(221, 209, 192, 0.72) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  min-height: auto !important;
+  color: var(--soft) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.98rem !important;
+  font-weight: 500 !important;
+  padding: 0.35rem 0.15rem 0.55rem !important;
+  transition: color 180ms ease, opacity 180ms ease;
+}
+
+button[data-baseweb="tab"]:hover {
+  color: var(--ink) !important;
+}
+
+button[data-baseweb="tab"][aria-selected="true"] {
+  color: var(--ink) !important;
+  font-weight: 600 !important;
+}
+
+button[data-baseweb="tab"]::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 2px;
+  margin-top: 0.4rem;
+  background: transparent;
+  transition: background 180ms ease;
+}
+
+button[data-baseweb="tab"][aria-selected="true"]::after {
+  background: linear-gradient(90deg, #4f46e5 0%, #14b8a6 100%);
 }
 
 /* Chart sizing */
@@ -533,6 +605,14 @@ hr {
   border: 1px solid rgba(79, 70, 229, 0.15);
 }
 
+.panel-title {
+  display: block;
+  margin-bottom: 1rem;
+  color: var(--ink);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
 @media (max-width: 900px) {
   .poster-shell,
   .result-hero,
@@ -554,5 +634,17 @@ hr {
   .helper-strip {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .section-title {
+    font-size: 1.65rem;
+  }
+
+  .card-title {
+    font-size: 1.35rem;
+  }
+
+  .radar-heading {
+    margin-top: 0;
   }
 }

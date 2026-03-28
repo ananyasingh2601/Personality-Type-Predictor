@@ -136,6 +136,34 @@ def model_score_text(model_name: str, metrics: dict[str, object]) -> str:
     return f"{value['accuracy'] * 100:.1f}% accuracy"
 
 
+def derive_top_confusions(
+    confusion_matrix_data: list[list[int]], labels: list[str], limit: int = 6
+) -> list[dict[str, object]]:
+    """Build the largest off-diagonal confusion pairs directly from the matrix."""
+    pairs: list[dict[str, object]] = []
+    for actual_idx, row in enumerate(confusion_matrix_data):
+        for predicted_idx, count in enumerate(row):
+            if actual_idx == predicted_idx or count <= 0:
+                continue
+            pairs.append(
+                {
+                    "actual": labels[actual_idx],
+                    "predicted": labels[predicted_idx],
+                    "count": int(count),
+                }
+            )
+    pairs.sort(key=lambda item: item["count"], reverse=True)
+    return pairs[:limit]
+
+
+def derive_weakest_f1(class_scores: dict[str, object], limit: int = 4) -> list[dict[str, object]]:
+    """Sort class scores by F1 so the list always reflects lowest performers."""
+    rows = class_scores.get("all", []) if isinstance(class_scores, dict) else []
+    valid_rows = [row for row in rows if isinstance(row, dict) and "f1" in row and "type" in row]
+    valid_rows.sort(key=lambda item: float(item.get("f1", 0.0)))
+    return valid_rows[:limit]
+
+
 def render_stat_pill(label: str, value: str, tone: str = "") -> None:
     extra = f" {tone}" if tone else ""
     st.markdown(
@@ -391,19 +419,24 @@ def render_results() -> None:
 
     st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
     
-    overview_tab, viz_tab, eval_tab = st.tabs(["📊 Visuals", "📝 Overview", "🔍 Insights"])
+    overview_tab, viz_tab, eval_tab = st.tabs(["Visuals", "Overview", "Insights"])
 
     with overview_tab:
-        left, right = st.columns([1.05, 0.95], gap="large")
+        st.markdown("<h3 class='section-title'>Your Persona</h3>", unsafe_allow_html=True)
+        
+        st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+
+        st.markdown("<div class='persona-grid'>", unsafe_allow_html=True)
+        left, right = st.columns([1.0, 1.0], gap="large")
         with left:
             st.markdown(
                 f"""
                 <div class="result-card rich">
-                    <h3>Persona summary</h3>
+                    <div class="card-title">Persona Summary</div>
                     <p>{st.session_state.persona_text}</p>
                     <div class="detail-grid">
                         <div><span>Strengths</span><strong>{predicted_profile.get('strengths', 'Not available')}</strong></div>
-                        <div><span>Working style</span><strong>{predicted_profile.get('collab', 'Not available')}</strong></div>
+                        <div><span>Working Style</span><strong>{predicted_profile.get('collab', 'Not available')}</strong></div>
                     </div>
                 </div>
                 """,
@@ -412,9 +445,17 @@ def render_results() -> None:
             if "warning" in prediction:
                 st.warning(prediction["warning"])
         with right:
+            st.markdown("<div class='result-card rich radar-card'>", unsafe_allow_html=True)
+            st.markdown("<div class='chart-label radar-heading'>Dimension Radar</div>", unsafe_allow_html=True)
             st.pyplot(build_radar_chart(rows, accent), clear_figure=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown("<h3 class='section-title'>Dimension breakdown</h3>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
+        st.markdown("<h3 class='section-title'>Dimension Breakdown</h3>", unsafe_allow_html=True)
+        
+        st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+        
         for row in rows:
             st.markdown(
                 f"""
@@ -433,16 +474,29 @@ def render_results() -> None:
             )
 
     with viz_tab:
-        top_left, top_right = st.columns([1.05, 0.95], gap="large")
+        st.markdown("<h3 class='section-title'>Prediction Probabilities</h3>", unsafe_allow_html=True)
+        
+        st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+        
+        top_left, top_right = st.columns([1.0, 1.0], gap="large")
         with top_left:
+            st.markdown("<div class='chart-label'>Top Type Predictions</div>", unsafe_allow_html=True)
             st.pyplot(build_probability_chart(prediction.get("top_six", prediction["top_three"]), accent), clear_figure=True)
         with top_right:
+            st.markdown("<div class='chart-label'>Group Distribution</div>", unsafe_allow_html=True)
             st.pyplot(build_group_donut_chart(prediction.get("group_probabilities", {predicted_group: 100.0})), clear_figure=True)
 
+        st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
+        st.markdown("<h3 class='section-title'>Detailed Analysis</h3>", unsafe_allow_html=True)
+        
+        st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+        
         lower_left, lower_right = st.columns([1.0, 1.0], gap="large")
         with lower_left:
+            st.markdown("<div class='chart-label'>Dimension Balance</div>", unsafe_allow_html=True)
             st.pyplot(build_dimension_balance_chart(rows, accent), clear_figure=True)
         with lower_right:
+            st.markdown("<div class='chart-label'>Type Ranking</div>", unsafe_allow_html=True)
             leaderboard = prediction.get("top_six", prediction["top_three"])
             st.markdown("<div class='leaderboard-shell'>", unsafe_allow_html=True)
             for candidate in leaderboard:
@@ -464,7 +518,12 @@ def render_results() -> None:
         if not model_metrics or not has_valid_benchmarks(metrics):
             st.info("No full training metrics found yet. Run python train_model.py to generate evaluation charts.")
         else:
-            st.markdown("<h3 class='section-title'>🔍 Model Evaluation Metrics</h3>", unsafe_allow_html=True)
+            labels = model_metrics.get("labels", [])
+            confusion_matrix_data = model_metrics.get("confusion_matrix", [])
+            top_confusions = derive_top_confusions(confusion_matrix_data, labels)
+            weakest = derive_weakest_f1(model_metrics.get("class_scores", {}))
+
+            st.markdown("<h3 class='section-title'>Model Evaluation Metrics</h3>", unsafe_allow_html=True)
             
             st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
             
@@ -473,8 +532,8 @@ def render_results() -> None:
                 st.markdown("<div class='chart-label'>Confusion Matrix</div>", unsafe_allow_html=True)
                 st.pyplot(
                     build_confusion_heatmap(
-                        model_metrics["confusion_matrix"],
-                        model_metrics["labels"],
+                        confusion_matrix_data,
+                        labels,
                         f"{st.session_state.selected_model} confusion matrix",
                     ),
                     clear_figure=True,
@@ -483,8 +542,11 @@ def render_results() -> None:
                 st.markdown("<div class='chart-label'>Performance Analysis</div>", unsafe_allow_html=True)
                 
                 st.markdown("<div class='analysis-panel'>", unsafe_allow_html=True)
-                st.markdown("<strong style='font-size: 1.1rem; display: block; margin-bottom: 1rem;'>Most confused type pairs</strong>")
-                for row in model_metrics.get("top_confusions", [])[:6]:
+                st.markdown(
+                    "<div class='panel-title'>Most confused type pairs</div>",
+                    unsafe_allow_html=True,
+                )
+                for row in top_confusions:
                     st.markdown(
                         f"""
                         <div class="confusion-row">
@@ -498,10 +560,12 @@ def render_results() -> None:
                 
                 st.markdown("<div style='height: 1.5rem;'></div>", unsafe_allow_html=True)
                 
-                weakest = model_metrics.get("class_scores", {}).get("weakest_f1", [])[:4]
                 if weakest:
                     st.markdown("<div class='analysis-panel'>", unsafe_allow_html=True)
-                    st.markdown("<strong style='font-size: 1.1rem; display: block; margin-bottom: 1rem;'>Lowest F1 score classes</strong>")
+                    st.markdown(
+                        "<div class='panel-title'>Lowest F1 score classes</div>",
+                        unsafe_allow_html=True,
+                    )
                     for row in weakest:
                         st.markdown(
                             f"""
