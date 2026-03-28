@@ -59,6 +59,14 @@ def add_table(document: Document, headers: list[str], rows: list[list[str]]) -> 
     document.add_paragraph("")
 
 
+def add_code_block(document: Document, code_text: str) -> None:
+    paragraph = document.add_paragraph()
+    run = paragraph.add_run(code_text)
+    run.font.name = "Consolas"
+    run.font.size = Pt(9.5)
+    document.add_paragraph("")
+
+
 def load_metrics() -> dict[str, object]:
     if not METRICS_PATH.exists():
         return {}
@@ -278,12 +286,21 @@ def build_technical_doc(metrics: dict[str, object]) -> Document:
 
     doc.add_heading("6. Key Code Snippets", level=1)
     doc.add_heading("6.1 train_model.py", level=2)
-    doc.add_paragraph(
-        "The training script accepts an optional dataset path and row cap, then calls train_and_save_models() to preprocess the corpus, fit both pipelines, save joblib artifacts, and export metrics.json."
+    add_code_block(
+        doc,
+        "def main():\n"
+        "    args = parse_args()\n"
+        "    metrics = train_and_save_models(dataset_path=args.data, max_rows=args.max_rows)\n"
+        "    print(json.dumps(metrics, indent=2))"
     )
     doc.add_heading("6.2 app.py", level=2)
-    doc.add_paragraph(
-        "The Streamlit app maintains session state for stage, question index, selected model, answers, and result payloads. When the user answers the last question, the app scores the quiz, composes the persona text, predicts the type, and renders result cards plus a radar chart."
+    add_code_block(
+        doc,
+        "def finalize_results():\n"
+        "    scored = score_answers(st.session_state.answers)\n"
+        "    persona_text = compose_persona_text(st.session_state.answers, scored)\n"
+        "    prediction = predict_profile(st.session_state.selected_model, persona_text)\n"
+        "    st.session_state.result = scored"
     )
 
     if metrics.get("models"):

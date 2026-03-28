@@ -5,7 +5,7 @@ from pathlib import Path
 import streamlit as st
 
 from src.personality_predictor.charts import build_radar_chart
-from src.personality_predictor.config import APP_SUBTITLE, APP_TITLE, MODEL_CONFIGS, QUIZ_DISCLAIMER, TYPE_GROUPS, TYPE_PROFILES
+from src.personality_predictor.config import APP_SUBTITLE, APP_TITLE, GROUP_ACCENTS, MODEL_CONFIGS, QUIZ_DISCLAIMER, TYPE_GROUPS, TYPE_PROFILES
 from src.personality_predictor.ml import predict_profile
 from src.personality_predictor.quiz import QUESTION_BANK, build_dimension_rows, compose_persona_text, score_answers
 
@@ -193,7 +193,7 @@ def render_results() -> None:
     predicted_type = result["predicted_type"]
     predicted_group = result["predicted_group"]
     predicted_profile = result["predicted_profile"]
-    accent = result["accent"]
+    accent = GROUP_ACCENTS.get(predicted_group, result["accent"])
 
     st.markdown(
         f"""
@@ -267,7 +267,7 @@ def render_results() -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title=APP_TITLE, page_icon=".", layout="wide")
+    st.set_page_config(page_title=APP_TITLE, layout="wide")
     load_css()
     init_state()
 
@@ -281,4 +281,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
