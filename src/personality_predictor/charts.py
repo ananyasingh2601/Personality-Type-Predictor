@@ -66,6 +66,10 @@ def build_group_donut_chart(group_probabilities: dict[str, float]):
     ax.set_facecolor("#FFF9F1")
     labels = [group for group in GROUP_ORDER if group in group_probabilities]
     values = [group_probabilities[group] for group in labels]
+    if not values or sum(values) <= 0:
+        ax.text(0.5, 0.5, "No group data", ha="center", va="center", color="#516072")
+        ax.set_axis_off()
+        return fig
     colors = [GROUP_ACCENTS[group] for group in labels]
     wedges, _ = ax.pie(values, colors=colors, startangle=90, wedgeprops={"width": 0.38, "edgecolor": "#FFF9F1"})
     ax.legend(wedges, [f"{label} {value:.1f}%" for label, value in zip(labels, values)], loc="center left", bbox_to_anchor=(1, 0.5), frameon=False)
@@ -97,6 +101,10 @@ def build_type_distribution_chart(type_counts: dict[str, int]):
     fig, ax = make_figure(7.2, 5.4)
     labels = [label for label, count in type_counts.items() if count > 0]
     values = [type_counts[label] for label in labels]
+    if not values:
+        ax.text(0.5, 0.5, "No dataset distribution", ha="center", va="center", color="#516072")
+        ax.set_axis_off()
+        return fig
     colors = [GROUP_ACCENTS[TYPE_GROUPS[label]] for label in labels]
     ax.barh(labels, values, color=colors, edgecolor="none")
     ax.invert_yaxis()
