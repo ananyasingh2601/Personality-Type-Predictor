@@ -44,15 +44,48 @@ def normalize_text(text: str) -> str:
     return text.strip()
 
 
-def load_dataset(path: Path, max_rows: int | None = None) -> pd.DataFrame:
+def stratified_frame_sample(frame: pd.DataFrame, sample_rows: int) -> pd.DataFrame:
+    if sample_rows <= 0 or len(frame) <= sample_rows:
+        return frame.reset_index(drop=True)
+
+    class_counts = frame["type"].value_counts().sort_index()
+    exact_targets = class_counts / class_counts.sum() * sample_rows
+    base_targets = exact_targets.astype(int)
+    remainder = int(sample_rows - base_targets.sum())
+
+    if remainder > 0:
+        fractional = (exact_targets - base_targets).sort_values(ascending=False)
+        for label in fractional.index[:remainder]:
+            base_targets[label] += 1
+
+    sampled_groups = []
+    for label, count in base_targets.items():
+        label_frame = frame[frame["type"] == label]
+        sampled_groups.append(label_frame.sample(n=min(int(count), len(label_frame)), random_state=42, replace=False))
+
+    return pd.concat(sampled_groups, ignore_index=True).sample(frac=1.0, random_state=42).reset_index(drop=True)
+
+
+def load_dataset(path: Path, max_rows: int | None = None, sample_rows: int | None = None) -> pd.DataFrame:
     frame = pd.read_csv(path, usecols=["posts", "type"])
     if max_rows:
         frame = frame.head(max_rows)
     frame = frame.dropna(subset=["posts", "type"]).copy()
-    frame["posts"] = frame["posts"].astype(str).map(normalize_text)
+    
+    # Vectorized text normalization for better performance
+    posts = frame["posts"].astype(str)
+    posts = posts.str.lower().str.replace("\\|\\|\\|", " ", regex=True)
+    posts = posts.str.replace(r"https?://\S+|www\.\S+", " ", regex=True)
+    posts = posts.str.replace(r"\b(?:infj|infp|intj|intp|isfj|isfp|istj|istp|enfj|enfp|entj|entp|esfj|esfp|estj|estp)\b", " personality ", regex=True, case=False)
+    posts = posts.str.replace(r"[^a-zA-Z\s]", " ", regex=True)
+    posts = posts.str.replace(r"\s+", " ", regex=True)
+    frame["posts"] = posts.str.strip()
+    
     frame["type"] = frame["type"].astype(str).str.upper()
     frame = frame[frame["posts"].str.len() > 10]
     frame = frame.drop_duplicates(subset=["posts", "type"])
+    if sample_rows:
+        frame = stratified_frame_sample(frame, sample_rows)
     return frame
 
 
@@ -194,9 +227,13 @@ def rank_class_scores(report: dict[str, object]) -> dict[str, list[dict[str, obj
     return {"best_f1": best, "weakest_f1": weakest, "all": class_rows}
 
 
-def train_and_save_models(dataset_path: str | None = None, max_rows: int | None = None) -> dict[str, object]:
+def train_and_save_models(
+    dataset_path: str | None = None,
+    max_rows: int | None = None,
+    sample_rows: int | None = None,
+) -> dict[str, object]:
     data_path = resolve_dataset_path(dataset_path)
-    frame = load_dataset(data_path, max_rows=max_rows)
+    frame = load_dataset(data_path, max_rows=max_rows, sample_rows=sample_rows)
 
     X_train, X_test, y_train, y_test = train_test_split(
         frame["posts"],
@@ -211,6 +248,7 @@ def train_and_save_models(dataset_path: str | None = None, max_rows: int | None 
     metrics: dict[str, object] = {
         "dataset_path": str(data_path),
         "rows_used": int(len(frame)),
+        "sample_rows": sample_rows,
         "train_rows": int(len(X_train)),
         "test_rows": int(len(X_test)),
         "dataset_summary": dataset_summary,

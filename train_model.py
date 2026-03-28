@@ -10,15 +10,15 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train MBTI Decision Tree and KNN models.")
     parser.add_argument("--data", type=str, default=None, help="Optional path to MBTI 500.csv")
     parser.add_argument("--max-rows", type=int, default=None, help="Optional cap for faster experiments")
+    parser.add_argument("--sample-rows", type=int, default=None, help="Optional stratified sample size from the full dataset")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    metrics = train_and_save_models(dataset_path=args.data, max_rows=args.max_rows)
+    metrics = train_and_save_models(dataset_path=args.data, max_rows=args.max_rows, sample_rows=args.sample_rows)
     print(json.dumps(metrics, indent=2))
 
 
 if __name__ == "__main__":
     main()
-
