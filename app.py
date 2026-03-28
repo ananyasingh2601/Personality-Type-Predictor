@@ -60,6 +60,22 @@ def load_css() -> None:
         st.markdown(f"<style>{css_path.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
 
 
+def render_top_logo() -> None:
+    logo_path = Path("assets/cute-logo.svg")
+    if not logo_path.exists():
+        return
+    logo_svg = logo_path.read_text(encoding="utf-8")
+    st.markdown(
+        f"""
+        <div class="top-brand-logo" aria-label="App logo">
+            {logo_svg}
+            <span>Persona Bloom</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def init_state() -> None:
     defaults = {
         "stage": "landing",
@@ -512,8 +528,9 @@ def render_results() -> None:
         with lower_right:
             st.markdown("<div class='chart-label'>Type Ranking</div>", unsafe_allow_html=True)
             leaderboard = prediction.get("top_six", prediction["top_three"])
+            visible_count = min(4, len(leaderboard))
             st.markdown("<div class='leaderboard-shell'>", unsafe_allow_html=True)
-            for candidate in leaderboard:
+            for candidate in leaderboard[:visible_count]:
                 candidate_profile = TYPE_PROFILES.get(candidate["type"], {"title": "Type profile"})
                 st.markdown(
                     f"""
@@ -526,6 +543,8 @@ def render_results() -> None:
                     unsafe_allow_html=True,
                 )
             st.markdown("</div>", unsafe_allow_html=True)
+            if len(leaderboard) > visible_count:
+                st.caption(f"Showing top {visible_count} of {len(leaderboard)} predictions")
 
     with eval_tab:
         model_metrics = metrics.get("models", {}).get(st.session_state.selected_model)
@@ -604,6 +623,7 @@ def main() -> None:
     st.set_page_config(page_title=APP_TITLE, layout="wide")
     load_css()
     init_state()
+    render_top_logo()
 
     if st.session_state.stage == "landing":
         render_landing()
